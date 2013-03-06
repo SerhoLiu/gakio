@@ -11,17 +11,10 @@
 #define FIRST_HASH(KEY, SIZE)  (KEY % SIZE)
 #define SECOND_HASH(KEY, SIZE) (1 + (KEY % (SIZE - 1)))
 
-#define RIGHT_TO_LEFT(left, right) do { \
-    (left)->v_type = (right)->v_type; \
-    (right)->v_type == LONG ? ((left)->num.v_long = (right)->num.v_long) :   \
-                              ((left)->num.v_double = (right)->num.v_double); \
-} while(0)
-
 
 typedef struct {
     char *key;                      
-    int v_type;
-    numbers num;                     
+    void *value;                    
 } dictitem;
 
 
@@ -75,7 +68,7 @@ void numdict_delete(numdict *dict)
     free(dict);           /* free dict node */
 }
 
-int numdict_put(numdict *dict, const char *key, const itemvalue *value)
+int numdict_put(numdict *dict, const char *key, const void *value)
 {
     unsigned int hash, f_hash, s_hash, index;
     hash = f_hash = s_hash = index = 0;
@@ -103,7 +96,7 @@ int numdict_put(numdict *dict, const char *key, const itemvalue *value)
 
         /* 找到相同的 key, 替换值 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
-            RIGHT_TO_LEFT(item, value);
+            item->value = value;
             return 1;
         }
 
@@ -113,7 +106,7 @@ int numdict_put(numdict *dict, const char *key, const itemvalue *value)
                 return 0;
             }
             strcpy(item->key, key);
-            RIGHT_TO_LEFT(item, value);
+            item->value = value;
             dict->use++;
             return 1;
         }
@@ -122,7 +115,7 @@ int numdict_put(numdict *dict, const char *key, const itemvalue *value)
     }
 }
 
-int numdict_get(const numdict *dict, const char *key, itemvalue *value)
+int numdict_get(const numdict *dict, const char *key, void *value)
 {
     unsigned int hash, f_hash, s_hash, index;
     hash = f_hash = s_hash = index = 0;
@@ -152,7 +145,7 @@ int numdict_get(const numdict *dict, const char *key, itemvalue *value)
 
         /* key 相同，查找成功 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
-            RIGHT_TO_LEFT(value, item);
+            value = item->value;
             return 1;
         }
 
