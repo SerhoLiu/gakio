@@ -11,7 +11,4 @@
 *.so.*
 *.dylib
 
-# Executables
-*.exe
-*.out
-*.app
+fakio
