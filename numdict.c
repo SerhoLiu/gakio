@@ -68,7 +68,7 @@ void numdict_delete(numdict *dict)
     free(dict);           /* free dict node */
 }
 
-int numdict_put(numdict *dict, const char *key, const void *value)
+int numdict_put(numdict *dict, const char *key, void * const value)
 {
     unsigned int hash, f_hash, s_hash, index;
     hash = f_hash = s_hash = index = 0;
@@ -106,7 +106,9 @@ int numdict_put(numdict *dict, const char *key, const void *value)
                 return 0;
             }
             strcpy(item->key, key);
+            //printf("numdict value %p", value);
             item->value = value;
+            //printf("numdict item value %p", value);
             dict->use++;
             return 1;
         }
@@ -115,7 +117,7 @@ int numdict_put(numdict *dict, const char *key, const void *value)
     }
 }
 
-int numdict_get(const numdict *dict, const char *key, void *value)
+void *numdict_get(const numdict *dict, const char *key)
 {
     unsigned int hash, f_hash, s_hash, index;
     hash = f_hash = s_hash = index = 0;
@@ -125,10 +127,10 @@ int numdict_get(const numdict *dict, const char *key, void *value)
     dictitem *item;
 
     if (dict == NULL) {
-        return 0;
+        return NULL;
     }
     if (key == NULL) {
-        return 0;
+        return NULL;
     }
 
     hash = bkdr_hash(key);
@@ -140,13 +142,14 @@ int numdict_get(const numdict *dict, const char *key, void *value)
         item = &(dict->items[index]);
         
         if (item->key == NULL) {
-            return 0;
+            return NULL;
         }
 
         /* key 相同，查找成功 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
-            value = item->value;
-            return 1;
+            return item->value;
+            //printf("get value %p\n", value);
+            //return 1;
         }
 
         i++;
