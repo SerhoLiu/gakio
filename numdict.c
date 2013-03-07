@@ -106,9 +106,7 @@ int numdict_put(numdict *dict, const char *key, void * const value)
                 return 0;
             }
             strcpy(item->key, key);
-            //printf("numdict value %p", value);
             item->value = value;
-            //printf("numdict item value %p", value);
             dict->use++;
             return 1;
         }
@@ -148,8 +146,6 @@ void *numdict_get(const numdict *dict, const char *key)
         /* key 相同，查找成功 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
             return item->value;
-            //printf("get value %p\n", value);
-            //return 1;
         }
 
         i++;
