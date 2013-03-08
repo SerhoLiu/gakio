@@ -4,12 +4,7 @@
 #include "numdict.h"
 #include "lex.h"
 #include "parser.h"
-
-/* 表达式串最大字符数 */
-#define MAXINPUT 1024
-
-/* token 串，归约栈，变量表最大容量 */
-#define MAXADTLEN 131
+#include "gakio.h"
 
 int main(int argc, char const *argv[])
 {
