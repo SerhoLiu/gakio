@@ -7,7 +7,13 @@
  * + | - | * | / | ( | ) | i | c | ? | = | # | N
  *-----------------------------------------------
  * 1   2   3   4   5   6   7   8   9   10  11  12
- */ 
+ */
+
+ enum {
+    T_PLUS = 1, T_MINUS, T_MULTI, T_DIVI, T_BRACES_L, T_BRACES_R,
+    T_VAR, T_CONST, T_PRINT, T_ASSING, T_BOUND, T_N
+};
+
 
 /*
  * token 二元组
@@ -16,7 +22,8 @@
  */
 typedef struct {
     int code;
-    char value[20];
+    //char value[20];
+    void *value;
 } token;
 
 

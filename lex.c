@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "lex.h"
+#include "gakio.h"
 
 #define MAXINPUT 1024
 #define INVALID_SYNTAX 717
@@ -135,12 +136,24 @@ static void create_tokens_array(tokenadt *tokens, const char *value)
     ch = value[0];
     if (isdigit(ch)) {
         t.code = 8;
-        strcpy(t.value, value);
+        /* 建立数值，使用 malloc，因为使用指针指向 */
+        //strcpy(t.value, value);
+        if (ch_in_str('.', value)) {
+            long *vlong = malloc(sizeof(long));
+            *vlong = atol(value);
+            t.value = vlong;
+        } else {
+            double *vdouble = malloc(sizeof(double));
+            *vdouble = atof(value);
+            t.value = MAKE_DOUBLE(vdouble);
+        }
         token_adt_append(tokens, &t);
     }
     else if (isalpha(ch) || ch == '_') {
         t.code = 7;
-        strcpy(t.value, value);
+        char *str = malloc((strlen(value) + 1) * sizeof(char));
+        strcpy(str, value);
+        t.value = str;
         token_adt_append(tokens, &t);
     }
 
@@ -155,7 +168,8 @@ static void create_tokens_array(tokenadt *tokens, const char *value)
         case '=': {t.code = 10; break;}
         default:  {return;}
     }
-    strcpy(t.value, value);
+    //strcpy(t.value, value);
+    t.value = NULL;
     token_adt_append(tokens, &t);
 }
 
@@ -192,7 +206,8 @@ int akio_lex(tokenadt *tokens, char *codes)
     /* 在 token 串后添加 #字符 */
     token t;
     t.code = 11;
-    strcpy(t.value, "#");
+    //strcpy(t.value, "#");
+    t.value = NULL;
     token_adt_append(tokens, &t);
     return 0; 
 }

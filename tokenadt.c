@@ -55,7 +55,8 @@ int token_adt_append(tokenadt *tokens, token *item)
     i = tokens->use;
     t = &(tokens->items[i]);
     t->code = item->code;
-    strcpy(t->value, item->value);
+    //strcpy(t->value, item->value);
+    t->value = item->value;
     tokens->use++;
     return 1;
 }
