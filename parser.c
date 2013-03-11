@@ -50,17 +50,12 @@ static int ch_in_str(const char ch, const char *str)
  */
 static int var_reduction(token *t, numdict *dict)
 {
-    int i;
-    itemvalue item;
-    i = numdict_get(dict, t->value, &item);
-    if (i == 0) {
+    void *value;
+    value = numdict_get(dict, t->value);
+    if (value == NULL) {
         return VAR_NOT_DEFINE;
     }
-    if (item.v_type == LONG) {
-        sprintf(t->value, "%ld", item.num.v_long);
-    } else {
-        sprintf(t->value, "%f", item.num.v_double);
-    }
+    t->value = value;
     t->code = 12;
     return 0;
 }
@@ -80,101 +75,7 @@ static int var_reduction(token *t, numdict *dict)
  */
 static int arith_reduction(token *l, token *r, token *op)
 {
-    long dl, dr, dre;
-    dl = dr = dre = 0;
-    double fl, fr, fre;
-    fl = fr = fre = 0;
-    int il, ir, type = DOUBLE, neg = 0;
-    char left[20];
-    strcpy(left, l->value);
-
-    /* 无左操作数错误处理 */
-    if (l->code != 12) {
-
-        /* 负数处理：如果是 -,添 0 */
-        if (op->code == 2) {
-            strcpy(left, "0");
-            neg = 1;
-        } else {
-            return LACK_OPER;
-        } 
-    }
-
-    /* 无右操作数错误处理 */
-    if (r->code != 12) {
-        return LACK_OPER;
-    }
-
-    il = ch_in_str('.', left);
-    ir = ch_in_str('.', r->value);
-    
-    if(il || ir) {
-        fl = atof(left);
-        fr = atof(r->value);
-    } else {
-        dl = atol(left);
-        dr = atol(r->value);
-        type = LONG;
-    }
-
-    switch (op->code) {
-        case 1: {
-            if (type == LONG) {
-                dre = dl + dr;
-            } else {
-                fre = fl + fr;
-            }
-            break;
-        }
-        case 2: {
-            if (type == LONG) {
-                dre = dl - dr;
-            } else {
-                fre = fl - fr;
-            }
-            break;
-        }
-        case 3: {
-            if (type == LONG) {
-                dre = dl * dr;
-            } else {
-                fre = fl * fr;
-            }
-            break;
-        }
-        case 4: {
-            if (type == LONG) {
-                if (dr == 0) {
-                    return DIVZERO;
-                }
-                dre = dl / dr;
-            } else {
-                if (fr == 0) {
-                    return DIVZERO;
-                }
-                fre = fl / fr;
-            }
-            break;
-        }
-        default:  { return INVALID_OP;}
-    }
-    if (neg) {
-        op->code = 12;
-        if (type == LONG) {
-            sprintf(op->value, "%ld", dre);
-        } else {
-            sprintf(op->value, "%f", fre);
-        }
-        return neg;
-    } else {
-        l->code = 12;
-        if (type == LONG) {
-            sprintf(l->value, "%ld", dre);
-        } else {
-            sprintf(l->value, "%f", fre);
-        }
-    }
-    return 0;
+    // TO DO:
 }
 
 
@@ -186,15 +87,7 @@ static int arith_reduction(token *l, token *r, token *op)
  */
 static void value_reduction(token *i, token *n, numdict *dict)
 {
-    itemvalue item;
-    if (ch_in_str('.', n->value)) {
-        item.v_type = DOUBLE;
-        item.num.v_double = atof(n->value);
-    } else {
-        item.v_type = LONG;
-        item.num.v_long = atol(n->value);
-    }
-    numdict_put(dict, i->value, &item);
+    numdict_put(dict, i->value, n->value);
     n->code = 12;
 }
 
