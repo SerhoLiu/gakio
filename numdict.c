@@ -16,17 +16,17 @@ typedef struct {
 
 
 struct numdict {
-    unsigned int size;
-    unsigned int use;
-    unsigned int lookup;  /* for test */
+    unsigned long size;
+    unsigned long use;
+    unsigned long lookup;  /* for test */
     dictitem *items;
 };
 
 
-static unsigned int string_hash(const char *str);
+static unsigned long string_hash(const char *str);
 
 
-numdict * numdict_new(unsigned int size)
+numdict * numdict_new(unsigned long size)
 {
     numdict *dict;
     
@@ -49,7 +49,7 @@ numdict * numdict_new(unsigned int size)
 
 void numdict_delete(numdict *dict)
 {
-    int n, i;
+    unsigned long n, i;
     n = i = 0;
     dictitem *items = NULL;
 
@@ -88,9 +88,9 @@ int numdict_put(numdict *dict, const char *key, void * const value)
     assert(dict->size > dict->use);
 
     
-    unsigned int hash = string_hash(key);
-    unsigned int index = hash;
-    unsigned int perturb = hash;
+    unsigned long hash = string_hash(key);
+    unsigned long index = hash;
+    unsigned long perturb = hash;
     
     while (1) {
         index = index & (dict->size - 1);
@@ -133,9 +133,9 @@ void *numdict_get(const numdict *dict, const char *key)
         return NULL;
     }
 
-    unsigned int hash = string_hash(key);
-    unsigned int index = hash;
-    unsigned int perturb = hash;
+    unsigned long hash = string_hash(key);
+    unsigned long index = hash;
+    unsigned long perturb = hash;
 
     while (1) {
         index = index & (dict->size - 1);
@@ -156,20 +156,22 @@ void *numdict_get(const numdict *dict, const char *key)
 
 }
 
-unsigned int get_lookup(numdict *dict)
+unsigned long get_lookup(numdict *dict)
 {
     return dict->lookup;
 }
 
+//static void re
+
 
 /* 这个 Hash 函数来自于 Python */
-static unsigned int string_hash(const char *str) {
-    unsigned int x;
-    unsigned int len = 0;
+static unsigned long string_hash(const char *str) {
+    unsigned long x;
+    unsigned long len = 0;
  
     x = *str << 7;
     while (*str) {
-        x = (100003 * x) ^ *str++;
+        x = (1000003 * x) ^ *str++;
         len++;
     }
     x ^= len;

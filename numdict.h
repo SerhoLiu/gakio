@@ -11,7 +11,7 @@ typedef struct numdict numdict;
  *
  * return 指向表的指针
  */
-numdict * numdict_new(unsigned int size);
+numdict * numdict_new(unsigned long size);
 
 
 /* 删除变量表 */

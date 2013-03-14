@@ -2,7 +2,7 @@
 #include "../numdict.h"
 #include "minunit.h"
 
-unsigned int SIZE = 100;
+unsigned long SIZE = 100;
 char *KEY = "testkey";
 numdict *dict;
 
