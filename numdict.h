@@ -1,6 +1,7 @@
 #ifndef _NUMDICT_H_
 #define _NUMDICT_H_
 
+
 /* 变量表结构 */
 typedef struct numdict numdict;
 
