@@ -8,6 +8,7 @@
 #include <assert.h>
 #include "numdict.h"
 
+#define DICT_INIT_SIZE 512
 
 typedef struct {
     char *key;                      
@@ -24,26 +25,13 @@ struct numdict {
 
 
 static unsigned long string_hash(const char *str);
+static numdict *_numdict_new(unsigned long size);
+static void numdict_resize(numdict *dict);
 
 
-numdict * numdict_new(unsigned long size)
+numdict *numdict_new()
 {
-    numdict *dict;
-    
-    dict = malloc(sizeof(numdict));
-    if (dict == NULL) {
-        return NULL;
-    }
-    dict->size = size;
-    dict->use = 0;
-    dict->lookup = 0;
-    dict->items = (dictitem *)malloc(dict->size * sizeof(dictitem));
-    if (dict->items == NULL) {
-        free(dict);
-        return NULL;
-    }
-    memset(dict->items, 0, dict->size * sizeof(dictitem)); 
-    return dict;
+    return _numdict_new(DICT_INIT_SIZE);
 }
 
 
@@ -57,14 +45,13 @@ void numdict_delete(numdict *dict)
         return;
     }
     n = dict->size;
-    
+
     items = dict->items;   /* free dictitem key string */
     while (i < n) {
         free(items->key);
         items++;
         i++;
     }
-
     free(dict->items);    /* free all dictitem */
     free(dict);           /* free dict node */
 }
@@ -78,14 +65,19 @@ int numdict_put(numdict *dict, const char *key, void * const value)
     dictitem *item;
 
     if (dict == NULL) {
-        printf("dict is NULL!\n");
+        //printf("dict is NULL!\n");
         return 0;
     }
     if (key == NULL || value == NULL) {
-        printf("key is NULL or value is NULL\n");
+        //printf("key is NULL or value is NULL\n");
         return 0;
     }
-    assert(dict->size > dict->use);
+
+    /* 当 use/size >= 2/3 时，扩大表 */
+    if (dict->use * 3 >= dict->size * 2) {
+        numdict_resize(dict);
+        printf("resize to: %lu\n", dict->size);
+    }
 
     
     unsigned long hash = string_hash(key);
@@ -101,7 +93,7 @@ int numdict_put(numdict *dict, const char *key, void * const value)
         /* 找到相同的 key, 替换值 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
             item->value = value;
-            printf("key in, repce!\n");
+            //printf("key in, repce!\n");
             return 1;
         }
 
@@ -113,7 +105,7 @@ int numdict_put(numdict *dict, const char *key, void * const value)
             strcpy(item->key, key);
             item->value = value;
             dict->use++;
-            printf("append new key index is %d!\n", index);
+            //printf("append new key index is %lu!\n", index);
             return 1;
         }
 
@@ -121,6 +113,7 @@ int numdict_put(numdict *dict, const char *key, void * const value)
         index = (index << 2) + index + perturb + 1;
     }
 }
+
 
 void *numdict_get(const numdict *dict, const char *key)
 {
@@ -161,7 +154,66 @@ unsigned long get_lookup(numdict *dict)
     return dict->lookup;
 }
 
-//static void re
+
+static numdict *_numdict_new(unsigned long size)
+{
+    numdict *dict;
+    
+    dict = malloc(sizeof(numdict));
+    if (dict == NULL) {
+        return NULL;
+    }
+    dict->size = size;
+    dict->use = 0;
+    dict->lookup = 0;
+    dict->items = (dictitem *)malloc(dict->size * sizeof(dictitem));
+    if (dict->items == NULL) {
+        free(dict);
+        return NULL;
+    }
+    memset(dict->items, 0, dict->size * sizeof(dictitem)); 
+    return dict;
+}
+
+
+static void numdict_resize(numdict *dict)
+{
+    unsigned long oldsize, newsize, olduse, i;
+    dictitem *item, *items, *temp;
+    numdict *newdict;
+
+    oldsize = dict->size;
+    olduse = dict->use;
+
+    /* 这里没有检测 newsize 是否溢出，因为 unsigned long 长度和指针一样 */
+    newsize = oldsize << 1;
+
+    //items = (dictitem *)malloc(sizeof(dictitem) * newsize);
+    newdict = _numdict_new(newsize);
+    if (newdict == NULL) {
+        return;
+    }
+
+    for (i = (oldsize - 1); (olduse > 0) && (i >= 0); i--) {
+        item = &(dict->items[i]);
+        if (item->key) {
+            if (numdict_put(newdict, item->key, item->value)) {
+                olduse--;
+            } 
+        }
+    }
+    
+    /* 如果 olduse == 0, 则重新散列成功，交换 hashtable */
+    if (!olduse) {
+        temp = dict->items;
+        dict->items = newdict->items;
+        dict->size = newsize;
+        newdict->items = temp;
+        newdict->size = oldsize;
+    }
+    numdict_delete(newdict);
+    //printf("rehash ok\n");
+}
 
 
 /* 这个 Hash 函数来自于 Python */

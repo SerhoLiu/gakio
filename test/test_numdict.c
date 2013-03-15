@@ -8,7 +8,7 @@ numdict *dict;
 
 char *test_new_numdict()
 {
-    dict = numdict_new(SIZE);
+    dict = numdict_new();
     mu_assert(dict != NULL, "new numdict failed!");
     return NULL;
 }
