@@ -179,7 +179,7 @@ static numdict *_numdict_new(unsigned long size)
 static void numdict_resize(numdict *dict)
 {
     unsigned long oldsize, newsize, olduse, i;
-    dictitem *item, *items, *temp;
+    dictitem *item, *temp;
     numdict *newdict;
 
     oldsize = dict->size;
@@ -194,7 +194,11 @@ static void numdict_resize(numdict *dict)
         return;
     }
 
-    for (i = (oldsize - 1); (olduse > 0) && (i >= 0); i--) {
+    /* 
+     * 本来 i >= 0 时才结束循环，不过 unsigned long 必然大于等于 0，
+     * 考虑到 use/size <= 2/3，所以 i > 0 即可
+     */
+    for (i = (oldsize - 1); (olduse > 0) && (i > 0); i--) {
         item = &(dict->items[i]);
         if (item->key) {
             if (numdict_put(newdict, item->key, item->value)) {
