@@ -1,14 +1,18 @@
 /*
- * Hash 表，采用开放寻址法，冲突解决方法是双重散列
- * 表容量固定，当元素个数大于容量时，会出错退出
+ * HashTable，采用开放地址解决 Hash 冲突,  Hash 函数
+ * 和冲突解决方法参考自 Python dictobject 的实现
+ * 
+ * 初始化大小是 512，当负载因子达到 2/3 时进行 resize 操作，
+ * 每次增加一倍
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "numdict.h"
 
-#define DICT_INIT_SIZE 512
+#define DICT_INIT_SIZE (1 << 9)
 
 typedef struct {
     char *key;                      
