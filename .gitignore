@@ -11,7 +11,10 @@
 *.dylib
 *.tags*
 
-fakio
+gakio
 test/test
 test/wordlist.txt
 test/test.c
+
+# sublime text 2 project files
+gakio.sublime*
