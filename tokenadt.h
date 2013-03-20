@@ -1,6 +1,8 @@
 #ifndef _TOKEN_ADT_H_
 #define _TOKEN_ADT_H_
 
+#include <stddef.h>
+
 /*
  *tokens code
  *-----------------------------------------------
@@ -22,7 +24,6 @@
  */
 typedef struct {
     int code;
-    //char value[20];
     void *value;
 } token;
 

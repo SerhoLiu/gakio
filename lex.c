@@ -1,40 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "lex.h"
 #include "gakio.h"
 
-#define MAXINPUT 1024
-#define INVALID_SYNTAX 717
-#define INVALID_TOKEN  718
-#define INVALID_PRINT  719
-
-/*
- *tokens code
- *-----------------------------------------------
- * + | - | * | / | ( | ) | i | c | ? | = | # | N
- *-----------------------------------------------
- * 1   2   3   4   5   6   7   8   9   10  11  12
- */ 
 
 static char OPT_STR[10] = "+-*/()";
-
-static void remove_str_space(char *str)
-{
-    char temp[MAXINPUT];
-    size_t i = 0, j = 0;
-
-    while (*(str++) != '\0') {
-        if (*str != ' ') {
-            *(temp+i) = *str;
-            i++;
-        }
-        j++;
-    }
-    *(temp + i) = '\0';
-
-    strcpy(str-j, temp);
-}
 
 static int ch_in_str(const char ch, const char *str)
 {
@@ -45,6 +17,7 @@ static int ch_in_str(const char ch, const char *str)
 
     return 0;
 }
+
 
 /*
  * @str 预处理后的表达式字符串
@@ -59,7 +32,7 @@ static int get_next_op(const char str[], char *value, int index)
     int i = 0, ch;
     
     ch = str[index];
-    
+
     /* 如果是字母或者下划线，开始判断是否是变量名 */
     if (isalpha(ch) || ch == '_') {
         value[i] = ch;
@@ -79,7 +52,8 @@ static int get_next_op(const char str[], char *value, int index)
     /* 如果是数字，开始判断是否是常数 */
     if (isdigit(ch)) {
         value[i] = ch;
-        while((ch = str[++index]) && (!ch_in_str(ch, OPT_STR))) {
+        while((ch = str[++index]) && (!ch_in_str(ch, OPT_STR))
+               && !(isspace(ch))) {
 
             /* 如果数字后面有字母等，则是非法的变量名 */
             if (!isdigit(ch) && (!ch_in_str(ch, OPT_STR) && (ch != '.'))) {
@@ -135,56 +109,54 @@ static void create_tokens_array(tokenadt *tokens, const char *value)
 
     ch = value[0];
     if (isdigit(ch)) {
-        t.code = 8;
-        /* 建立数值，使用 malloc，因为使用指针指向 */
-        //strcpy(t.value, value);
+        t.code = T_CONST;
+        
         if (ch_in_str('.', value)) {
-            long *vlong = malloc(sizeof(long));
+            double *vdouble = (double *)malloc(sizeof(double));
+            *vdouble = atof(value);
+            t.value = MAKE_DOUBLE(vdouble);  
+        } else {
+            long *vlong = (long *)malloc(sizeof(long));
             *vlong = atol(value);
             t.value = vlong;
-        } else {
-            double *vdouble = malloc(sizeof(double));
-            *vdouble = atof(value);
-            t.value = MAKE_DOUBLE(vdouble);
         }
-        token_adt_append(tokens, &t);
-    }
-    else if (isalpha(ch) || ch == '_') {
-        t.code = 7;
+    } else if (isalpha(ch) || ch == '_') {
+        t.code = T_VAR;
         char *str = malloc((strlen(value) + 1) * sizeof(char));
         strcpy(str, value);
         t.value = str;
-        token_adt_append(tokens, &t);
+    } else {
+        switch (ch) {
+            case '+': {t.code = T_PLUS; break;}
+            case '-': {t.code = T_MINUS; break;}
+            case '*': {t.code = T_MULTI; break;}
+            case '/': {t.code = T_DIVI; break;}
+            case '(': {t.code = T_BRACES_L; break;}
+            case ')': {t.code = T_BRACES_R; break;}
+            case '?': {t.code = T_PRINT; break;}
+            case '=': {t.code = T_ASSING; break;}
+            default:  {return;}
+        }
+        t.value = NULL;
     }
-
-    switch (ch) {
-        case '+': {t.code = 1; break;}
-        case '-': {t.code = 2; break;}
-        case '*': {t.code = 3; break;}
-        case '/': {t.code = 4; break;}
-        case '(': {t.code = 5; break;}
-        case ')': {t.code = 6; break;}
-        case '?': {t.code = 9; break;}
-        case '=': {t.code = 10; break;}
-        default:  {return;}
-    }
-    //strcpy(t.value, value);
-    t.value = NULL;
     token_adt_append(tokens, &t);
 }
 
 
 int akio_lex(tokenadt *tokens, char *codes)
 {
-    remove_str_space(codes);
+    //remove_str_space(codes);
             
     int index = 0, len_str;
-    char value[20];
+    char value[MAXTOKEN];
     len_str = strlen(codes);
     
-    while ((index != INVALID_TOKEN) && (index != INVALID_SYNTAX) && 
-           (index != INVALID_PRINT) && (index < len_str)) {
-            
+    while (index < len_str) {
+        
+        while (isspace(codes[index])) {
+            index++;
+        }
+
         index = get_next_op(codes, value, index);
 
         if (index == INVALID_SYNTAX) {
@@ -199,14 +171,14 @@ int akio_lex(tokenadt *tokens, char *codes)
             printf("SyntaxError: ? must a first \"%s\"\n", value);
             return 1;
         } else {
+            printf("%s\n", value);
             create_tokens_array(tokens, value);
         }   
     }
 
     /* 在 token 串后添加 #字符 */
     token t;
-    t.code = 11;
-    //strcpy(t.value, "#");
+    t.code = T_BOUND;
     t.value = NULL;
     token_adt_append(tokens, &t);
     return 0; 
