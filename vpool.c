@@ -46,18 +46,14 @@ int value_pool_append(valuepool *vpool, void *value)
     return 1;
 }
 
-void *value_pool_find(valuepool *vpool, void *value)
+void *value_pool_find(valuepool *vpool, const void *value)
 {
     unsigned long use, i;
     use = vpool->use;
 
     void **values = vpool->values;
-    for (i = 0; i < use; i++) {
-        if (IS_GAKIONUM(value)) {
-            if (*(GakioNum *)(GET_GAKIONUM(values[i])) == (*(GakioNum *)(GET_GAKIONUM(value)))) {
-                return (void *)(GET_GAKIONUM(values[i]));
-            }
-        } else {
+    for (i = 0; i < use; i++) { 
+        if (!IS_GAKIONUM(value)) {
             if (!strcmp((char *)values[i], (char *)value)) {
                 return values[i];
             }
@@ -95,8 +91,6 @@ static void value_pool_resize(valuepool *vpool)
     newsize = oldsize << 1;
     olduse = vpool->use;
     oldvalues = vpool->values;
-
-    //printf("oldsize = %ld; olduse = %ld\n", oldsize, olduse);
 
     newvalues = malloc(newsize * sizeof(void*));
     if (newvalues == NULL) {

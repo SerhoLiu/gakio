@@ -51,13 +51,7 @@ char *test_vpool_resize()
 
 char *test_vpool_find()
 {
-    GakioNum *tnum, num = 12.9;
-    tnum = &num;
-    tnum = MAKE_GAKIONUM(tnum);
-    void *r = value_pool_find(vpool, tnum);
-    mu_assert(*(GakioNum *)(GET_GAKIONUM(r)) == num, "find GakioNum from vpool failed!");
-
-    r = value_pool_find(vpool, test);
+    void *r = value_pool_find(vpool, test);
     debug("#### find string form vpool %s", (char *)r);
     return NULL;
 }

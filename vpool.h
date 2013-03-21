@@ -30,6 +30,6 @@ void value_pool_delete(valuepool *vpool);
  */
 int value_pool_append(valuepool *vpool, void *value);
 
-void *value_pool_find(valuepool *vpool, void *value);
+void *value_pool_find(valuepool *vpool, const void *value);
 
 #endif
