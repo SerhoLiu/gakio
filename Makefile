@@ -1,13 +1,13 @@
 CC = gcc
-CFLAGS = -O2 -Wall
+CFLAGS = -O0 -g -Wall
 
-FAKIO_OBJ = tokenadt.o numdict.o lex.o parser.o repl.o
+GAKIO_OBJ = tokenadt.o numdict.o lex.o parser.o repl.o
 
-all:	fakio
+all:	gakio
 
-fakio: $(FAKIO_OBJ)
-	$(CC) $(CFLAGS)  $(FAKIO_OBJ) -o $@
+gakio: $(GAKIO_OBJ)
+	$(CC) $(CFLAGS)  $(GAKIO_OBJ) -o $@
 
 .PHONY: clean
 clean:
-	-rm fakio *.o
+	-rm gakio *.o

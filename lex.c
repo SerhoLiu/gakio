@@ -110,15 +110,12 @@ static void create_tokens_array(tokenadt *tokens, const char *value)
     ch = value[0];
     if (isdigit(ch)) {
         t.code = T_CONST;
-        
+        GakioNum *gnum = (GakioNum *)malloc(sizeof(GakioNum));
+        *gnum = atof(value);
         if (ch_in_str('.', value)) {
-            double *vdouble = (double *)malloc(sizeof(double));
-            *vdouble = atof(value);
-            t.value = MAKE_DOUBLE(vdouble);  
+            t.value = gnum;  
         } else {
-            long *vlong = (long *)malloc(sizeof(long));
-            *vlong = atol(value);
-            t.value = vlong;
+            t.value = MAKE_INTEGER(gnum);
         }
     } else if (isalpha(ch) || ch == '_') {
         t.code = T_VAR;

@@ -2,10 +2,22 @@
 #define _GAKIO_H_
 
 /* 表达式串最大字符数 */
-#define MAXINPUT 1024
+#define MAXINPUT 2048
 
-/* token 串，归约栈，变量表最大容量 */
+/* token 串，归约栈，最大容量 */
 #define MAXADTLEN 131
+
+/* 标识符最大长度 */
+#define MAXTOKEN 128
+
+/* 异常信息代码 */
+#define INVALID_SYNTAX 717
+#define INVALID_TOKEN  718
+#define INVALID_PRINT  719
+#define VAR_NOT_DEFINE 720
+#define INVALID_OP 721
+#define LACK_OPER 722
+#define DIVZERO 723
 
 
 /* 
@@ -15,8 +27,12 @@
  * 可以参考：http://serholiu.com/talk-tagged-pointer
  *
  */
-#define IS_DOUBLE(p) (((unsigned long) (p) & 0x1) != 0)
-#define MAKE_DOUBLE(p) ((void *)((unsigned long) (p) | 0x1))
-#define GET_DOUBLE(p) ((unsigned long) (p) & ~0x1)
+#define GakioNum double
+#define PRINT_DOUBLE_FORMT "%.14g"
+#define PRINT_INT_FORMT "%.0lf"
 
- #endif
+#define IS_INTEGER(p) (((unsigned long) (p) & 0x1) != 0)
+#define MAKE_INTEGER(p) ((void *)((unsigned long) (p) | 0x1))
+#define GET_INTEGER(p) ((unsigned long) (p) & ~0x1)
+
+#endif

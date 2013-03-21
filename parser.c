@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
+#include "gakio.h"
 
 #define TOKENNUM 11
 #define GRE 1
@@ -9,11 +10,9 @@
 #define LE -1
 #define NONE -2
 
-#define VAR_NOT_DEFINE 720
-#define INVALID_OP 721
-#define LACK_OPER 722
-#define DIVZERO 723
+#define INTEGER 2
 
+/* 算符优先关系表 Todo: 使用算符优先函数 */ 
 static const int token_pri[TOKENNUM][TOKENNUM] = {
     /* +   -    *   /  (    )   i   c   ?     =      #  */
     {GRE, GRE, LE, LE, LE, GRE, LE, LE, NONE, NONE, GRE},          // +
@@ -22,23 +21,12 @@ static const int token_pri[TOKENNUM][TOKENNUM] = {
     {GRE, GRE, GRE, GRE, LE, GRE, LE, LE, NONE, NONE, GRE},        // /
     {LE, LE, LE, LE, LE, EQU, LE, LE, NONE, NONE, NONE},           // (
     {GRE, GRE, GRE, GRE, NONE, GRE, NONE, NONE, NONE, NONE, GRE},  // )
-    {GRE, GRE, GRE, GRE, NONE, GRE, NONE, NONE, NONE, LE, GRE},   // i
+    {GRE, GRE, GRE, GRE, NONE, GRE, NONE, NONE, NONE, LE, GRE},    // i
     {GRE, GRE, GRE, GRE, NONE, GRE, NONE, NONE, NONE, NONE, GRE},  // c
     {LE, LE, LE, LE, LE, NONE, LE, LE, NONE, NONE, GRE},           // ?
-    {LE, LE, LE, LE, LE, NONE, LE, LE, NONE, NONE, GRE},            // =
+    {LE, LE, LE, LE, LE, NONE, LE, LE, NONE, NONE, GRE},           // =
     {LE, LE, LE, LE, LE, NONE, LE, LE, LE, LE, EQU}                // #
 };
-
-
-static int ch_in_str(const char ch, const char *str)
-{
-    do { 
-        if (ch == *str)
-            return 1;
-    } while (str++ && (*str != '\0'));
-
-    return 0;
-}
 
 
 /* N <= i
@@ -50,13 +38,14 @@ static int ch_in_str(const char ch, const char *str)
  */
 static int var_reduction(token *t, numdict *dict)
 {
+    //printf("numdict get red\n");
     void *value;
     value = numdict_get(dict, t->value);
     if (value == NULL) {
         return VAR_NOT_DEFINE;
     }
     t->value = value;
-    t->code = 12;
+    t->code = T_N;
     return 0;
 }
 
@@ -75,7 +64,83 @@ static int var_reduction(token *t, numdict *dict)
  */
 static int arith_reduction(token *l, token *r, token *op)
 {
-    // TO DO:
+    int isneg = 0, typeres = 0;
+    GakioNum *left, *right, *result;
+    left = right = result = NULL;
+
+    /* 无右操作数错误处理 */
+    if (r->code != 12) {
+        return LACK_OPER;
+    }
+
+    if (l->code != T_N) {
+        /* 负数处理：如果是 -,添 0 */
+        if (op->code == T_MINUS) {
+            GakioNum *negfix = (GakioNum *)malloc(sizeof(GakioNum));
+            *negfix = 0;
+            left = MAKE_INTEGER(negfix);
+            isneg = 1;
+        } else {
+            return LACK_OPER;
+        } 
+    } else {
+        left = l->value;
+    }
+
+    if (IS_INTEGER(left)) {
+        left = (GakioNum *)GET_INTEGER(left);
+        typeres++;
+    }
+    if (IS_INTEGER(r->value)) {
+        right = (GakioNum *)GET_INTEGER(r->value);
+        typeres++;
+    } else {
+        right =(GakioNum *)(r->value);
+    }
+
+    result = (GakioNum *)malloc(sizeof(GakioNum));
+    switch (op->code) {
+        case T_PLUS: {
+            *result = *left + *right;
+            break;
+        }
+        case T_MINUS: {
+            *result = *left - *right;
+            break;
+        }
+        case T_MULTI: {
+            *result = *left * (*right);
+            break;
+        }
+        case T_DIVI: {
+            if (*right == 0) {
+                return DIVZERO;
+            }
+            *result = *left / (*right);
+            break;
+        }
+        default:  {
+            free(left);
+            free(right);
+            return INVALID_OP;
+        }
+    }
+    
+    if (typeres == INTEGER) {
+        result = MAKE_INTEGER(result);
+    }
+
+    if (isneg) {
+        op->code = T_N;
+        op->value = result;
+    } else {
+        l->code = T_N;
+        l->value = result;
+    }
+
+    free(left);
+    free(right);
+    return isneg;
 }
 
 
@@ -88,7 +153,7 @@ static int arith_reduction(token *l, token *r, token *op)
 static void value_reduction(token *i, token *n, numdict *dict)
 {
     numdict_put(dict, i->value, n->value);
-    n->code = 12;
+    n->code = T_N;
 }
 
 
@@ -97,8 +162,8 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
     token ta, ts;
     
     /* 将 # 入栈 */
-    ts.code = 11;
-    strcpy(ts.value, "#");
+    ts.code = T_BOUND;
+    ts.value = NULL;
     token_adt_append(token_stack, &ts);
     
     size_t idx = 0;
@@ -109,7 +174,7 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
         s_top = token_stack->use - 1;
 
         /* 判断栈顶元素是否在符号表中 */         
-        if (token_stack->items[s_top].code > 11) {
+        if (token_stack->items[s_top].code > T_BOUND) {
             j = s_top - 1;
         } else {
             j = s_top;
@@ -119,12 +184,12 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
         while (token_pri[token_stack->items[j].code-1][ta.code-1] == GRE) {
             
             /* 对常数进行归约：N <= c */
-            if (token_stack->items[j].code == 8) {
-                token_stack->items[j].code = 12;
+            if (token_stack->items[j].code == T_CONST) {
+                token_stack->items[j].code = T_N;
             }
             
             /* 对变量进行归约: N <= i */
-            if (token_stack->items[j].code == 7) {
+            if (token_stack->items[j].code == T_VAR) {
                 int re;
                 re = var_reduction(&(token_stack->items[j]), dict);
                 if (re == VAR_NOT_DEFINE) {
@@ -134,22 +199,29 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
             }
 
             /* 对括号进行归约：N <= (N) */
-            if (token_stack->items[j].code == 6) {
-                token_stack->items[j-2].code = 12;
-                strcpy(token_stack->items[j-2].value, token_stack->items[j-1].value);
+            if (token_stack->items[j].code == T_BRACES_R) {
+                token_stack->items[j-2].code = T_N;
+                token_stack->items[j-2].value = token_stack->items[j-1].value;
                 j = j - 2;
             }
 
             /* 对打印进行归约：N <= ?N */
-            if (token_stack->items[j].code == 9) {
-                printf("%s\n", token_stack->items[j+1].value);
+            if (token_stack->items[j].code == T_PRINT) {
+                if (IS_INTEGER(token_stack->items[j+1].value)) {
+                    printf(PRINT_INT_FORMT,
+                           *(GakioNum *)GET_INTEGER(token_stack->items[j+1].value));
+                } else {
+                    printf(PRINT_DOUBLE_FORMT, 
+                           *(GakioNum *)token_stack->items[j+1].value);
+                }
+                
             }
 
             /* 赋值归约：N <= i = N */
-            if (token_stack->items[j].code == 10) {
+            if (token_stack->items[j].code == T_ASSING) {
                 
                 /* 如果 = 右边不是 N，则出现语法错误 */
-                if (token_stack->items[j+1].code != 12)  {
+                if (token_stack->items[j+1].code != T_N)  {
                     printf("SyntaxError: '=' must be like 'v = N'!\n");
                     return;
                 }
@@ -158,7 +230,7 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
             }
 
             /* 对算术进行归约：N <= N +|-|*|/ N */
-            if ((token_stack->items[j].code < 5) && (token_stack->items[j].code > 0)) {
+            if ((token_stack->items[j].code <= T_DIVI) && (token_stack->items[j].code >= T_PLUS)) {
                 int reg;
                 reg = arith_reduction(&(token_stack->items[j-1]), &(token_stack->items[j+1]),
                                       &(token_stack->items[j]));
@@ -182,7 +254,7 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
             /* 归约后，向下扫描，找到后一个终结符 */
             do {
                     j = j - 1;
-                } while (token_stack->items[j].code > 11);
+                } while (token_stack->items[j].code > T_BOUND);
             
             /* 归约后，调整栈使用大小，此时 j 总是指向栈顶下的第2个元素 */
             token_stack->use = j + 2;
@@ -191,7 +263,7 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
         if (token_pri[token_stack->items[j].code-1][ta.code-1] == LE
             || token_pri[token_stack->items[j].code-1][ta.code-1] == EQU) {
             
-            strcpy(ta.value, token_array->items[idx].value);
+            ta.value = token_array->items[idx].value;
             token_adt_append(token_stack, &ta);
         }else {
             printf("SyntaxError: '%s'!\n", token_stack->items[j].value);

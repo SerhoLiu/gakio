@@ -13,7 +13,7 @@ int main(int argc, char const *argv[])
     
     array = token_adt_new(MAXADTLEN);
     stack = token_adt_new(MAXADTLEN);
-    dict = numdict_new(MAXADTLEN);
+    dict = numdict_new();
 
     char b[MAXINPUT];
     int l;
