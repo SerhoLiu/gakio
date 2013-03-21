@@ -35,4 +35,8 @@
 #define MAKE_VARIABLE(p) ((void *)((unsigned long) (p) | 0x1))
 #define GET_VARIABLE(p) ((unsigned long) (p) & ~0x1)
 
+#define IS_GAKIONUM(p) (((unsigned long) (p) & 0x1) != 0)
+#define MAKE_GAKIONUM(p) ((void *)((unsigned long) (p) | 0x1))
+#define GET_GAKIONUM(p) ((unsigned long) (p) & ~0x1)
+
 #endif

@@ -55,8 +55,10 @@ void numdict_delete(numdict *dict)
         item = &(dict->items[i]);
         if (item->key) {
             free(item->key);
+            printf("free item key\n");
             if (item->value) {
                 free((void *)GET_VARIABLE(item->value));
+                printf("free item value\n");
             }
             use--;
         }
@@ -158,6 +160,27 @@ void *numdict_get(const numdict *dict, const char *key)
     }
 
 }
+
+char *numdict_get_key(numdict *dict, const char *key)
+{
+    unsigned long size, use, i = 0;
+    dictitem *item;
+
+    size = dict->size;
+    use = dict->use;
+
+    for (i = (size - 1); (use > 0) && (i > 0); i--) {
+        item = &(dict->items[i]);
+        if (item->key) {
+            if (!strcmp(item->key, key)) {
+                return item->key; 
+            }
+            use--; 
+        }
+    }
+    return NULL;
+}
+
 
 unsigned long get_lookup(numdict *dict)
 {

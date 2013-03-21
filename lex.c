@@ -98,7 +98,7 @@ static int get_next_op(const char str[], char *value, int index)
  * @tokens token 串指针
  * @value token 单元
  */
-static void create_tokens_array(tokenadt *tokens, const char *value)
+static void create_tokens_array(tokenadt *tokens, numdict *dict, const char *value)
 {
     char ch;
     token t;
@@ -116,10 +116,15 @@ static void create_tokens_array(tokenadt *tokens, const char *value)
         t.value = gnum;
     } else if (isalpha(ch) || ch == '_') {
         t.code = T_VAR;
-        
-        char *str = malloc((strlen(value) + 1) * sizeof(char));
-        printf("str is malloc\n");
-        strcpy(str, value);
+        //TODO:
+        char *str;
+        printf("hhhhhhhhh\n");
+        str = numdict_get_key(dict, value);
+        if (!str) {
+            str = malloc((strlen(value) + 1) * sizeof(char));
+            printf("str is malloc\n");
+            strcpy(str, value);
+        }
         t.value = str;
     } else {
         switch (ch) {
@@ -139,7 +144,7 @@ static void create_tokens_array(tokenadt *tokens, const char *value)
 }
 
 
-int akio_lex(tokenadt *tokens, char *codes)
+int akio_lex(tokenadt *tokens, numdict *dict, char *codes)
 {
     //remove_str_space(codes);
             
@@ -168,7 +173,7 @@ int akio_lex(tokenadt *tokens, char *codes)
             return 1;
         } else {
             printf("%s\n", value);
-            create_tokens_array(tokens, value);
+            create_tokens_array(tokens, dict, value);
         }   
     }
 

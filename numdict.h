@@ -41,4 +41,6 @@ int numdict_put(numdict *dict, const char *key, void * const value);
  */
 void *numdict_get(const numdict *dict, const char *key);
 
+char *numdict_get_key(numdict *dict, const char *key);
+
 #endif 

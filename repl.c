@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
 
         if (strcmp(b, ":q") != 0) {
             
-            l = akio_lex(array, b);
+            l = akio_lex(array, dict, b);
             if (!l) {
                 reduction(array, stack, dict);
             }
