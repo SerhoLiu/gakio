@@ -28,11 +28,11 @@
  *
  */
 #define GakioNum double
-#define PRINT_DOUBLE_FORMT "%.14g"
-#define PRINT_INT_FORMT "%.0lf"
+#define PRINT_DOUBLE_FORMT "%.8lf\n"
+#define PRINT_INT_FORMT "%.0lf\n"
 
-#define IS_INTEGER(p) (((unsigned long) (p) & 0x1) != 0)
-#define MAKE_INTEGER(p) ((void *)((unsigned long) (p) | 0x1))
-#define GET_INTEGER(p) ((unsigned long) (p) & ~0x1)
+#define IS_VARIABLE(p) (((unsigned long) (p) & 0x1) != 0)
+#define MAKE_VARIABLE(p) ((void *)((unsigned long) (p) | 0x1))
+#define GET_VARIABLE(p) ((unsigned long) (p) & ~0x1)
 
 #endif

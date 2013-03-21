@@ -11,6 +11,7 @@
 #include <string.h>
 #include <assert.h>
 #include "numdict.h"
+#include "gakio.h"
 
 #define DICT_INIT_SIZE (1 << 9)
 
@@ -41,21 +42,26 @@ numdict *numdict_new()
 
 void numdict_delete(numdict *dict)
 {
-    unsigned long n, i;
-    n = i = 0;
-    dictitem *items = NULL;
+    unsigned long size, use, i = 0;
+    dictitem *item;
 
     if (dict == NULL) {
         return;
     }
-    n = dict->size;
-
-    items = dict->items;   /* free dictitem key string */
-    while (i < n) {
-        free(items->key);
-        items++;
-        i++;
+    size = dict->size;
+    use = dict->use;
+    
+    for (i = (size - 1); (use > 0) && (i > 0); i--) {
+        item = &(dict->items[i]);
+        if (item->key) {
+            free(item->key);
+            if (item->value) {
+                free((void *)GET_VARIABLE(item->value));
+            }
+            use--;
+        }
     }
+
     free(dict->items);    /* free all dictitem */
     free(dict);           /* free dict node */
 }
@@ -163,7 +169,8 @@ static numdict *_numdict_new(unsigned long size)
 {
     numdict *dict;
     
-    dict = malloc(sizeof(numdict));
+    dict = (numdict *)malloc(sizeof(numdict));
+    printf("new dict malloc\n");
     if (dict == NULL) {
         return NULL;
     }
@@ -171,6 +178,7 @@ static numdict *_numdict_new(unsigned long size)
     dict->use = 0;
     dict->lookup = 0;
     dict->items = (dictitem *)malloc(dict->size * sizeof(dictitem));
+    printf("new dict items malloc\n");
     if (dict->items == NULL) {
         free(dict);
         return NULL;

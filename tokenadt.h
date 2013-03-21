@@ -51,6 +51,9 @@ tokenadt *token_adt_new(size_t size);
 /* 重置 token 串结构 */
 void token_adt_reset(tokenadt *tokens);
 
+/* 重置 token 串结构,并释放资源 */
+void token_adt_free_reset(tokenadt *tokens);
+
 /* 删除 token 串 */
 void token_adt_delete(tokenadt *tokens);
 

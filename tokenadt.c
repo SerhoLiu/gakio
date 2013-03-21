@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tokenadt.h"
+#include "gakio.h"
 
 tokenadt *token_adt_new(size_t size)
 {
     tokenadt *tokens;
     
     tokens = malloc(sizeof(tokenadt));
+    printf("new tokenadt malloc\n");
     if (tokens == NULL) {
         return NULL;
     }
@@ -14,6 +16,7 @@ tokenadt *token_adt_new(size_t size)
     tokens->size = size;
     tokens->use = 0;
     tokens->items = (token *)malloc(tokens->size * sizeof(token));
+    printf("new tokenadt items malloc\n");
     if (tokens->items == NULL) {
         free(tokens);
         return NULL;
@@ -26,6 +29,27 @@ void token_adt_reset(tokenadt *tokens)
 {
     if (tokens == NULL) {
         return;
+    }
+
+    tokens->use = 0;
+}
+
+void token_adt_free_reset(tokenadt *tokens)
+{
+    if (tokens == NULL) {
+        return;
+    }
+
+    token *t;
+    size_t use, i;
+    use = tokens->use;
+
+    for (i = 0; i < use; i++) {
+        t = &(tokens->items[i]);
+        if (IS_VARIABLE(t->value)) {
+            //printf("HEEEEEE_FREE\n");
+            free((void *)GET_VARIABLE(t->value));
+        }
     }
 
     tokens->use = 0;

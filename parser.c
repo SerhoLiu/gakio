@@ -64,9 +64,11 @@ static int var_reduction(token *t, numdict *dict)
  */
 static int arith_reduction(token *l, token *r, token *op)
 {
-    int isneg = 0, typeres = 0;
-    GakioNum *left, *right, *result;
-    left = right = result = NULL;
+    int isneg, vl, vr;
+    isneg = vl = vr = 0;
+
+    GakioNum left, right, *result = NULL;
+    left = right = 0;
 
     /* 无右操作数错误处理 */
     if (r->code != 12) {
@@ -76,70 +78,74 @@ static int arith_reduction(token *l, token *r, token *op)
     if (l->code != T_N) {
         /* 负数处理：如果是 -,添 0 */
         if (op->code == T_MINUS) {
-            GakioNum *negfix = (GakioNum *)malloc(sizeof(GakioNum));
-            *negfix = 0;
-            left = MAKE_INTEGER(negfix);
+            left = 0;
             isneg = 1;
         } else {
             return LACK_OPER;
         } 
     } else {
-        left = l->value;
-    }
-
-    if (IS_INTEGER(left)) {
-        left = (GakioNum *)GET_INTEGER(left);
-        typeres++;
-    }
-    if (IS_INTEGER(r->value)) {
-        right = (GakioNum *)GET_INTEGER(r->value);
-        typeres++;
-    } else {
-        right =(GakioNum *)(r->value);
-    }
-
-    result = (GakioNum *)malloc(sizeof(GakioNum));
-    switch (op->code) {
-        case T_PLUS: {
-            *result = *left + *right;
-            break;
-        }
-        case T_MINUS: {
-            *result = *left - *right;
-            break;
-        }
-        case T_MULTI: {
-            *result = *left * (*right);
-            break;
-        }
-        case T_DIVI: {
-            if (*right == 0) {
-                return DIVZERO;
-            }
-            *result = *left / (*right);
-            break;
-        }
-        default:  {
-            free(left);
-            free(right);
-            return INVALID_OP;
+        if (IS_VARIABLE(l->value)) {
+            left = *(GakioNum *)(GET_VARIABLE(l->value));
+        } else {
+            left = *(GakioNum *)(l->value);
+            vl = 1;
         }
     }
     
-    if (typeres == INTEGER) {
-        result = MAKE_INTEGER(result);
+    if (IS_VARIABLE(r->value)) {
+        right = *(GakioNum *)(GET_VARIABLE(r->value));
+    } else {
+        right = *(GakioNum *)(r->value);
+        vr = 1;
+    }
+    
+    result = (GakioNum *)malloc(sizeof(GakioNum));
+    printf("result is malloc\n");
+    switch (op->code) {
+        case T_PLUS: {
+            *result = left + right;
+            break;
+        }
+        case T_MINUS: {
+            *result = left - right;
+            break;
+        }
+        case T_MULTI: {
+            *result = left * right;
+            break;
+        }
+        case T_DIVI: {
+            if (right == 0) {
+                return DIVZERO;
+            }
+            *result = left / right;
+            break;
+        }
+        default:  {
+            //free()
+            free(result);
+            return INVALID_OP;
+        }
     }
 
+    //result = MAKE_VARIABLE(result);
+    void *temp;
     if (isneg) {
         op->code = T_N;
-        op->value = result;
+        op->value = result;  
     } else {
         l->code = T_N;
+        temp = l->value;
         l->value = result;
+        if (vl) {
+            free(temp);
+        }
     }
 
-    free(left);
-    free(right);
+    if (vr) {
+        free(r->value);
+    }
+
     return isneg;
 }
 
@@ -152,7 +158,10 @@ static int arith_reduction(token *l, token *r, token *op)
  */
 static void value_reduction(token *i, token *n, numdict *dict)
 {
-    numdict_put(dict, i->value, n->value);
+    /* 将放入变量表的量的指针修改，进行垃圾处理 */
+    //n->value = (void *)(GET_VARIABLE(n->value));
+
+    numdict_put(dict, i->value, (void *)(MAKE_VARIABLE(n->value)));
     n->code = T_N;
 }
 
@@ -193,7 +202,8 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
                 int re;
                 re = var_reduction(&(token_stack->items[j]), dict);
                 if (re == VAR_NOT_DEFINE) {
-                    printf("NameError: name '%s' is not defined!\n", token_stack->items[j].value);
+                    printf("NameError: name '%s' is not defined!\n",
+                            (char *)token_stack->items[j].value);
                     return;
                 }
             }
@@ -207,14 +217,8 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
 
             /* 对打印进行归约：N <= ?N */
             if (token_stack->items[j].code == T_PRINT) {
-                if (IS_INTEGER(token_stack->items[j+1].value)) {
-                    printf(PRINT_INT_FORMT,
-                           *(GakioNum *)GET_INTEGER(token_stack->items[j+1].value));
-                } else {
-                    printf(PRINT_DOUBLE_FORMT, 
-                           *(GakioNum *)token_stack->items[j+1].value);
-                }
-                
+                printf(PRINT_DOUBLE_FORMT, 
+                           *(GakioNum *)(GET_VARIABLE(token_stack->items[j+1].value)));  
             }
 
             /* 赋值归约：N <= i = N */
@@ -235,7 +239,8 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
                 reg = arith_reduction(&(token_stack->items[j-1]), &(token_stack->items[j+1]),
                                       &(token_stack->items[j]));
                 if (reg == LACK_OPER) {
-                    printf("ArithmeticError: '%s' missing operand!\n", token_stack->items[j].value);
+                    printf("ArithmeticError: '%s' missing operand!\n",
+                            (char *)token_stack->items[j].value);
                     return;    
                 }
                 if (reg == DIVZERO) {
@@ -265,8 +270,9 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
             
             ta.value = token_array->items[idx].value;
             token_adt_append(token_stack, &ta);
-        }else {
-            printf("SyntaxError: '%s'!\n", token_stack->items[j].value);
+        } else {
+            printf("SyntaxError: '%s'!\n",
+                    (char *)token_stack->items[j].value);
             return;
         }
 
