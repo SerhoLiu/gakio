@@ -2,7 +2,7 @@
 #define _LEX_H_
 
 #include "tokenadt.h"
-#include "numdict.h"
+#include "vpool.h"
 
 /*
  * 词法分析函数
@@ -11,6 +11,6 @@
  * return 1 词法错误
  * return 0 正确返回
  */
-int akio_lex(tokenadt *tokens, numdict *dict, char *codes);
+int akio_lex(tokenadt *tokens, valuepool *vpool, char *codes);
 
 #endif 

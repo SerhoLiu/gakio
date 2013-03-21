@@ -62,10 +62,9 @@ static int var_reduction(token *t, numdict *dict)
  * return 1 - 符缺少左操作数，以负数处理
  * return 0 正常
  */
-static int arith_reduction(token *l, token *r, token *op)
+static int arith_reduction(token *l, token *r, token *op, valuepool *vpool)
 {
-    int isneg, vl, vr;
-    isneg = vl = vr = 0;
+    int isneg = 0;
 
     GakioNum left, right, *result = NULL;
     left = right = 0;
@@ -84,23 +83,13 @@ static int arith_reduction(token *l, token *r, token *op)
             return LACK_OPER;
         } 
     } else {
-        if (IS_VARIABLE(l->value)) {
-            left = *(GakioNum *)(GET_VARIABLE(l->value));
-        } else {
-            left = *(GakioNum *)(l->value);
-            vl = 1;
-        }
+        left = *(GakioNum *)(l->value);
     }
     
-    if (IS_VARIABLE(r->value)) {
-        right = *(GakioNum *)(GET_VARIABLE(r->value));
-    } else {
-        right = *(GakioNum *)(r->value);
-        vr = 1;
-    }
-    
+    right = *(GakioNum *)(r->value);
+
     result = (GakioNum *)malloc(sizeof(GakioNum));
-    printf("result is malloc\n");
+    
     switch (op->code) {
         case T_PLUS: {
             *result = left + right;
@@ -129,23 +118,14 @@ static int arith_reduction(token *l, token *r, token *op)
     }
 
     //result = MAKE_VARIABLE(result);
-    void *temp;
+    value_pool_append(vpool, MAKE_GAKIONUM(result));
     if (isneg) {
         op->code = T_N;
         op->value = result;  
     } else {
         l->code = T_N;
-        temp = l->value;
         l->value = result;
-        if (vl) {
-            free(temp);
-        }
     }
-
-    if (vr) {
-        free(r->value);
-    }
-
     return isneg;
 }
 
@@ -158,15 +138,13 @@ static int arith_reduction(token *l, token *r, token *op)
  */
 static void value_reduction(token *i, token *n, numdict *dict)
 {
-    /* 将放入变量表的量的指针修改，进行垃圾处理 */
-    //n->value = (void *)(GET_VARIABLE(n->value));
-
-    numdict_put(dict, i->value, (void *)(MAKE_VARIABLE(n->value)));
+    numdict_put(dict, i->value, n->value);
     n->code = T_N;
 }
 
 
-void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
+void reduction(tokenadt *token_array, tokenadt *token_stack, 
+                numdict *dict, valuepool *vpool)
 { 
     token ta, ts;
     
@@ -237,7 +215,7 @@ void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict)
             if ((token_stack->items[j].code <= T_DIVI) && (token_stack->items[j].code >= T_PLUS)) {
                 int reg;
                 reg = arith_reduction(&(token_stack->items[j-1]), &(token_stack->items[j+1]),
-                                      &(token_stack->items[j]));
+                                      &(token_stack->items[j]), vpool);
                 if (reg == LACK_OPER) {
                     printf("ArithmeticError: '%s' missing operand!\n",
                             (char *)token_stack->items[j].value);

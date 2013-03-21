@@ -8,7 +8,6 @@ tokenadt *token_adt_new(size_t size)
     tokenadt *tokens;
     
     tokens = malloc(sizeof(tokenadt));
-    printf("new tokenadt malloc\n");
     if (tokens == NULL) {
         return NULL;
     }
@@ -16,7 +15,6 @@ tokenadt *token_adt_new(size_t size)
     tokens->size = size;
     tokens->use = 0;
     tokens->items = (token *)malloc(tokens->size * sizeof(token));
-    printf("new tokenadt items malloc\n");
     if (tokens->items == NULL) {
         free(tokens);
         return NULL;

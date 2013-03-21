@@ -93,12 +93,13 @@ static int get_next_op(const char str[], char *value, int index)
     return index;
 }
 
+
 /*
  * 生成 token 串，以二元组的形式存放在 tokens 指针指向的队列
  * @tokens token 串指针
  * @value token 单元
  */
-static void create_tokens_array(tokenadt *tokens, numdict *dict, const char *value)
+static void create_tokens_array(tokenadt *tokens, valuepool *vpool, const char *value)
 {
     char ch;
     token t;
@@ -110,22 +111,23 @@ static void create_tokens_array(tokenadt *tokens, numdict *dict, const char *val
     ch = value[0];
     if (isdigit(ch)) {
         t.code = T_CONST;
-        GakioNum *gnum = (GakioNum *)malloc(sizeof(GakioNum));
-        printf("GakioNum malloc\n");
-        *gnum = atof(value);
+        GakioNum *gnum, num;
+        num = atof(value);
+        gnum = (GakioNum *)malloc(sizeof(GakioNum));
+        *gnum = num;
+        value_pool_append(vpool, MAKE_GAKIONUM(gnum));
         t.value = gnum;
     } else if (isalpha(ch) || ch == '_') {
         t.code = T_VAR;
-        //TODO:
-        char *str;
-        printf("hhhhhhhhh\n");
-        str = numdict_get_key(dict, value);
-        if (!str) {
-            str = malloc((strlen(value) + 1) * sizeof(char));
-            printf("str is malloc\n");
+        void *vchar = value_pool_find(vpool, value);
+        if ((vchar != NULL) && !(strcmp((char *)vchar, value))) {
+            t.value = vchar;
+        } else {
+            char *str = (char *)malloc((strlen(value) + 1) * sizeof(char));
             strcpy(str, value);
-        }
-        t.value = str;
+            value_pool_append(vpool, str);
+            t.value = str;
+        } 
     } else {
         switch (ch) {
             case '+': {t.code = T_PLUS; break;}
@@ -144,7 +146,7 @@ static void create_tokens_array(tokenadt *tokens, numdict *dict, const char *val
 }
 
 
-int akio_lex(tokenadt *tokens, numdict *dict, char *codes)
+int akio_lex(tokenadt *tokens, valuepool *vpool, char *codes)
 {
     //remove_str_space(codes);
             
@@ -172,8 +174,7 @@ int akio_lex(tokenadt *tokens, numdict *dict, char *codes)
             printf("SyntaxError: ? must a first \"%s\"\n", value);
             return 1;
         } else {
-            printf("%s\n", value);
-            create_tokens_array(tokens, dict, value);
+            create_tokens_array(tokens, vpool, value);
         }   
     }
 

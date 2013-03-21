@@ -2,6 +2,7 @@
 #include <string.h>
 #include "tokenadt.h"
 #include "numdict.h"
+#include "vpool.h"
 #include "lex.h"
 #include "parser.h"
 #include "gakio.h"
@@ -10,10 +11,12 @@ int main(int argc, char const *argv[])
 {
     tokenadt *array, *stack;
     numdict *dict;
+    valuepool *vpool;
     
     array = token_adt_new(MAXADTLEN);
     stack = token_adt_new(MAXADTLEN);
     dict = numdict_new();
+    vpool = value_pool_new();
 
     char b[MAXINPUT];
     int l;
@@ -43,9 +46,9 @@ int main(int argc, char const *argv[])
 
         if (strcmp(b, ":q") != 0) {
             
-            l = akio_lex(array, dict, b);
+            l = akio_lex(array, vpool, b);
             if (!l) {
-                reduction(array, stack, dict);
+                reduction(array, stack, dict, vpool);
             }
             token_adt_reset(array);
             token_adt_reset(stack);
@@ -57,5 +60,6 @@ int main(int argc, char const *argv[])
     token_adt_delete(array);
     token_adt_delete(stack);
     numdict_delete(dict);
+    value_pool_delete(vpool);
     return 0;
 }
