@@ -42,26 +42,8 @@ numdict *numdict_new()
 
 void numdict_delete(numdict *dict)
 {
-    unsigned long size, use, i = 0;
-    dictitem *item;
-
     if (dict == NULL) {
         return;
-    }
-    size = dict->size;
-    use = dict->use;
-    
-    for (i = (size - 1); (use > 0) && (i > 0); i--) {
-        item = &(dict->items[i]);
-        if (item->key) {
-            free(item->key);
-            printf("free item key\n");
-            if (item->value) {
-                free((void *)GET_VARIABLE(item->value));
-                printf("free item value\n");
-            }
-            use--;
-        }
     }
 
     free(dict->items);    /* free all dictitem */
@@ -69,26 +51,20 @@ void numdict_delete(numdict *dict)
 }
 
 
-int numdict_put(numdict *dict, const char *key, void * const value)
+int numdict_put(numdict *dict, char *key, void * const value)
 {
-    int key_len;
-    key_len = strlen(key);
-    
     dictitem *item;
 
     if (dict == NULL) {
-        //printf("dict is NULL!\n");
         return 0;
     }
     if (key == NULL || value == NULL) {
-        //printf("key is NULL or value is NULL\n");
         return 0;
     }
 
     /* 当 use/size >= 2/3 时，扩大表 */
     if (dict->use * 3 >= dict->size * 2) {
         numdict_resize(dict);
-        printf("resize to: %lu\n", dict->size);
     }
 
     
@@ -105,19 +81,13 @@ int numdict_put(numdict *dict, const char *key, void * const value)
         /* 找到相同的 key, 替换值 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
             item->value = value;
-            //printf("key in, repce!\n");
             return 1;
         }
 
         if (item->key == NULL) {
-            item->key = (char *)malloc((key_len + 1) * sizeof(char));
-            if (item->key == NULL) {
-                return 0;
-            }
-            strcpy(item->key, key);
+            item->key = key;
             item->value = value;
             dict->use++;
-            //printf("append new key index is %lu!\n", index);
             return 1;
         }
 
@@ -161,26 +131,6 @@ void *numdict_get(const numdict *dict, const char *key)
 
 }
 
-char *numdict_get_key(numdict *dict, const char *key)
-{
-    unsigned long size, use, i = 0;
-    dictitem *item;
-
-    size = dict->size;
-    use = dict->use;
-
-    for (i = (size - 1); (use > 0) && (i > 0); i--) {
-        item = &(dict->items[i]);
-        if (item->key) {
-            if (!strcmp(item->key, key)) {
-                return item->key; 
-            }
-            use--; 
-        }
-    }
-    return NULL;
-}
-
 
 unsigned long get_lookup(numdict *dict)
 {
@@ -193,7 +143,6 @@ static numdict *_numdict_new(unsigned long size)
     numdict *dict;
     
     dict = (numdict *)malloc(sizeof(numdict));
-    printf("new dict malloc\n");
     if (dict == NULL) {
         return NULL;
     }
@@ -201,7 +150,6 @@ static numdict *_numdict_new(unsigned long size)
     dict->use = 0;
     dict->lookup = 0;
     dict->items = (dictitem *)malloc(dict->size * sizeof(dictitem));
-    printf("new dict items malloc\n");
     if (dict->items == NULL) {
         free(dict);
         return NULL;
@@ -251,7 +199,6 @@ static void numdict_resize(numdict *dict)
         newdict->size = oldsize;
     }
     numdict_delete(newdict);
-    //printf("rehash ok\n");
 }
 
 

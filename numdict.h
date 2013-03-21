@@ -27,7 +27,7 @@ void numdict_delete(numdict *dict);
  * return 1 添加成功
  * return 0 添加失败
  */
-int numdict_put(numdict *dict, const char *key, void * const value);
+int numdict_put(numdict *dict, char *key, void * const value);
 
 
 /* 变量表中读取变量的值
@@ -40,7 +40,5 @@ int numdict_put(numdict *dict, const char *key, void * const value);
  * return 0 查找成功
  */
 void *numdict_get(const numdict *dict, const char *key);
-
-char *numdict_get_key(numdict *dict, const char *key);
 
 #endif 
