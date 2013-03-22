@@ -32,26 +32,6 @@ void token_adt_reset(tokenadt *tokens)
     tokens->use = 0;
 }
 
-void token_adt_free_reset(tokenadt *tokens)
-{
-    if (tokens == NULL) {
-        return;
-    }
-
-    token *t;
-    size_t use, i;
-    use = tokens->use;
-
-    for (i = 0; i < use; i++) {
-        t = &(tokens->items[i]);
-        if (IS_VARIABLE(t->value)) {
-            //printf("HEEEEEE_FREE\n");
-            free((void *)GET_VARIABLE(t->value));
-        }
-    }
-
-    tokens->use = 0;
-}
 
 void token_adt_delete(tokenadt *tokens)
 {

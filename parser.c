@@ -142,6 +142,21 @@ static void value_reduction(token *i, token *n, numdict *dict)
 }
 
 
+static void code_to_op_string(int code, char *str)
+{
+    switch (code) {
+        case T_PLUS:  {str[0] = '+'; break;}
+        case T_MINUS: {str[0] = '-'; break;}
+        case T_MULTI: {str[0] = '*'; break;}
+        case T_DIVI:  {str[0] = '/'; break;}
+        case T_BRACES_L: {str[0] = '('; break;}
+        case T_BRACES_R: {str[0] = ')'; break;}
+        default: {str[0] = '!';}
+    }
+    str[1] = '\0';
+}
+
+
 void reduction(tokenadt *token_array, tokenadt *token_stack, 
                 numdict *dict, valuepool *vpool)
 { 
@@ -216,8 +231,9 @@ void reduction(tokenadt *token_array, tokenadt *token_stack,
                 reg = arith_reduction(&(token_stack->items[j-1]), &(token_stack->items[j+1]),
                                       &(token_stack->items[j]), vpool);
                 if (reg == LACK_OPER) {
-                    printf("ArithmeticError: '%s' missing operand!\n",
-                            (char *)token_stack->items[j].value);
+                    char op[3];
+                    code_to_op_string(token_stack->items[j].code, op);
+                    printf("ArithmeticError: '%s' missing operand!\n", op);
                     return;    
                 }
                 if (reg == DIVZERO) {
