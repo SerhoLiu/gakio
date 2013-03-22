@@ -1,7 +1,5 @@
 ## Gakio
 
-VERSION 1.1.0
-
 一个非常简单的表达式求值解释器。使用算符优先文法，支持对整数和小数进行简单的加减乘除运算。实际使用如下图所示：
 
 ![使用示例](https://github.com/SerhoLiu/gakio/raw/master/doc/eg.png)
