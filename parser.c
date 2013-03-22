@@ -10,7 +10,6 @@
 #define LE -1
 #define NONE -2
 
-#define INTEGER 2
 
 /* 算符优先关系表 Todo: 使用算符优先函数 */ 
 static const int token_pri[TOKENNUM][TOKENNUM] = {
@@ -196,7 +195,7 @@ void reduction(tokenadt *token_array, tokenadt *token_stack,
             /* 对打印进行归约：N <= ?N */
             if (token_stack->items[j].code == T_PRINT) {
                 printf(PRINT_DOUBLE_FORMT, 
-                           *(GakioNum *)(GET_VARIABLE(token_stack->items[j+1].value)));  
+                           *(GakioNum *)(token_stack->items[j+1].value));  
             }
 
             /* 赋值归约：N <= i = N */

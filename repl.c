@@ -7,6 +7,8 @@
 #include "parser.h"
 #include "gakio.h"
 
+#define GAKIO_REPL_INFO "Hello..." GAKIO_VERSION "\nType ':q' quit this REPL\n"
+
 int main(int argc, char const *argv[])
 {
     tokenadt *array, *stack;
@@ -20,7 +22,7 @@ int main(int argc, char const *argv[])
 
     char b[MAXINPUT];
     int l;
-    const char *info = "Hello... type ':q' quit this REPL\n";
+    const char *info = GAKIO_REPL_INFO;
     fputs(info, stdout);
     fflush(stdout);
 
