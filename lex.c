@@ -36,8 +36,18 @@ static int get_next_op(const char str[], char *value, int index)
     /* 如果是字母或者下划线，开始判断是否是变量名 */
     if (isalpha(ch) || ch == '_') {
         value[i] = ch;
-        while ((ch = str[++index]) && (isalpha(ch) || isdigit(ch) || (ch == '_') || (ch == '.'))) {
-                value[++i] = ch;
+        while ((ch = str[++index]) && (isalpha(ch) || isdigit(ch)
+                || (ch == '_') || (ch == '.'))) {
+                
+            value[++i] = ch;
+            if (i > MAXTOKENLEN - 2) {
+                value[i-2] = '.';
+                value[i-1] = '.';
+                value[i] = '.';
+                value[++i] = '\0';
+                return TOKEN_TOO_LONG;
+            }
+
         }
         value[++i] = '\0';
         
@@ -63,6 +73,13 @@ static int get_next_op(const char str[], char *value, int index)
             }
             else if (isdigit(ch) || ch == '.') {
                 value[++i] = ch;
+            }
+            if (i > MAXTOKENLEN - 2) {
+                value[i-2] = '.';
+                value[i-1] = '.';
+                value[i] = '.';
+                value[++i] = '\0';
+                return TOKEN_TOO_LONG;
             }
         }
         value[++i] = '\0';
@@ -151,7 +168,7 @@ int akio_lex(tokenadt *tokens, valuepool *vpool, char *codes)
     //remove_str_space(codes);
             
     int index = 0, len_str;
-    char value[MAXTOKEN];
+    char value[MAXTOKENLEN];
     len_str = strlen(codes);
     
     while (index < len_str) {
@@ -160,6 +177,7 @@ int akio_lex(tokenadt *tokens, valuepool *vpool, char *codes)
             index++;
         }
 
+        memset(value, 0, MAXTOKENLEN);
         index = get_next_op(codes, value, index);
 
         if (index == INVALID_SYNTAX) {
@@ -172,6 +190,10 @@ int akio_lex(tokenadt *tokens, valuepool *vpool, char *codes)
         }
         else if (index == INVALID_PRINT) {
             printf("SyntaxError: ? must a first \"%s\"\n", value);
+            return 1;
+        } 
+        else if (index == TOKEN_TOO_LONG) {
+            printf("TokenError: token '%s' too long\n", value);
             return 1;
         } else {
             create_tokens_array(tokens, vpool, value);

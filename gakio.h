@@ -10,16 +10,18 @@
 #define MAXADTLEN 1024
 
 /* 标识符最大长度 */
-#define MAXTOKEN 128
+#define MAXTOKENLEN 128
 
 /* 异常信息代码 */
 #define INVALID_SYNTAX 717
 #define INVALID_TOKEN  718
 #define INVALID_PRINT  719
-#define VAR_NOT_DEFINE 720
-#define INVALID_OP 721
-#define LACK_OPER 722
-#define DIVZERO 723
+#define TOKEN_TOO_LONG 720
+
+#define VAR_NOT_DEFINE 750
+#define INVALID_OP 751
+#define LACK_OPER 752
+#define DIVZERO 753
 
 
 /* 一切数值都是 double 类型，方便处理 */
