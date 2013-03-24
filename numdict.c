@@ -24,7 +24,6 @@ typedef struct {
 struct numdict {
     unsigned long size;
     unsigned long use;
-    unsigned long lookup;  /* for test */
     dictitem *items;
 };
 
@@ -75,8 +74,6 @@ int numdict_put(numdict *dict, char *key, void * const value)
     while (1) {
         index = index & (dict->size - 1);
         item = &(dict->items[index]);
-        
-        dict->lookup++;  /* for test */
 
         /* 找到相同的 key, 替换值 */
         if ((item->key != NULL) && (!strcmp(item->key, key))) {
@@ -132,12 +129,6 @@ void *numdict_get(const numdict *dict, const char *key)
 }
 
 
-unsigned long get_lookup(numdict *dict)
-{
-    return dict->lookup;
-}
-
-
 static numdict *_numdict_new(unsigned long size)
 {
     numdict *dict;
@@ -148,7 +139,6 @@ static numdict *_numdict_new(unsigned long size)
     }
     dict->size = size;
     dict->use = 0;
-    dict->lookup = 0;
     dict->items = (dictitem *)malloc(dict->size * sizeof(dictitem));
     if (dict->items == NULL) {
         free(dict);
