@@ -111,11 +111,7 @@ static int get_next_op(const char str[], char *value, int index)
 }
 
 
-/*
- * 生成 token 串，以二元组的形式存放在 tokens 指针指向的队列
- * @tokens token 串指针
- * @value token 单元
- */
+/* 生成 token 串，以二元组的形式存放在 tokens 指针指向的队列 */
 static void create_tokens_array(tokenadt *tokens, valuepool *vpool, const char *value)
 {
     char ch;
@@ -164,9 +160,7 @@ static void create_tokens_array(tokenadt *tokens, valuepool *vpool, const char *
 
 
 int akio_lex(tokenadt *tokens, valuepool *vpool, char *codes)
-{
-    //remove_str_space(codes);
-            
+{       
     int index = 0, len_str;
     char value[MAXTOKENLEN];
     len_str = strlen(codes);

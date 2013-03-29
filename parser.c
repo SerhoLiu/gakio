@@ -54,6 +54,7 @@ static int var_reduction(token *t, numdict *dict)
  * @l 左操作数
  * @r 右操作数
  * @op 操作符
+ * @vpool 集中的对象管理池
  * 结果将修改 l或者op 作为返回值
  *
  * return LACK_OPER 缺少操作数
@@ -110,13 +111,11 @@ static int arith_reduction(token *l, token *r, token *op, valuepool *vpool)
             break;
         }
         default:  {
-            //free()
             free(result);
             return INVALID_OP;
         }
     }
 
-    //result = MAKE_VARIABLE(result);
     value_pool_append(vpool, MAKE_GAKIONUM(result));
     if (isneg) {
         op->code = T_N;

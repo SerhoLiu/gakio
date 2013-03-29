@@ -10,6 +10,7 @@
  * @token_array token 串
  * @token_stack 归约栈
  * @dict 变量表
+ * @vpool 集中的对象管理池
  */
 void reduction(tokenadt *token_array, tokenadt *token_stack, numdict *dict, valuepool *vpool);
 

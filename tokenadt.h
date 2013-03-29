@@ -20,7 +20,7 @@
 /*
  * token 二元组
  * @code 种别码
- * @value 值，以字符串形式存放
+ * @value 值
  */
 typedef struct {
     int code;

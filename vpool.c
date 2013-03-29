@@ -14,7 +14,6 @@ valuepool *value_pool_new()
     return _value_pool_new(VPOOL_INIT_SIZE);
 }
 
-
 void value_pool_delete(valuepool *vpool)
 {
     unsigned long use, i;
@@ -81,7 +80,6 @@ static valuepool *_value_pool_new(unsigned long size)
     return vpool;
 }
 
-
 static void value_pool_resize(valuepool *vpool)
 {
     unsigned long newsize, oldsize, olduse, i;
@@ -103,6 +101,5 @@ static void value_pool_resize(valuepool *vpool)
 
     vpool->values = newvalues;
     vpool->size = newsize;
-    //printf("FREE OLDVALUES\n");
     free(oldvalues);
 }

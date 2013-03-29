@@ -6,9 +6,6 @@
 typedef struct numdict numdict;
 
 /* 新建表量表
- *
- * @size 表容量大小
- *
  * return 指向表的指针
  */
 numdict * numdict_new();
@@ -34,10 +31,8 @@ int numdict_put(numdict *dict, char *key, void * const value);
  *
  * @dict 指向变量表的指针
  * @key 变量名
- * @value 变量的值，作为返回值
  *
- * return 1 查找失败
- * return 0 查找成功
+ * return 指向值的指针，NULL 则查找失败
  */
 void *numdict_get(const numdict *dict, const char *key);
 
