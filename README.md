@@ -10,6 +10,16 @@
 > 2. 数字：采用 C 中的双精度浮点型，对于整数运算，在结果小于 2**52 时不会出现误差，大于时将会产生误差
      支持负数，如果负数不是在首位，需要加上括号，否则会出现算术错误。
 
+### 使用
+
+#### For Linux or Unix
+> 1. git clone git://github.com/SerhoLiu/gakio.git
+> 2. cd gakio
+> 3. make
+> 4. ./gakio
+
+#### For Windows
+
 ### 算符优先关系表
 
 ![算符优先关系表](https://github.com/SerhoLiu/gakio/raw/master/doc/token.png)
