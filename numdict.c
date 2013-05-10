@@ -167,11 +167,7 @@ static void numdict_resize(numdict *dict)
         return;
     }
 
-    /* 
-     * 本来 i >= 0 时才结束循环，不过 unsigned long 必然大于等于 0，
-     * 考虑到 use/size <= 2/3，所以 i > 0 即可
-     */
-    for (i = (oldsize - 1); (olduse > 0) && (i > 0); i--) {
+    for (i = 0; (olduse > 0) && (i < oldsize); i++) {
         item = &(dict->items[i]);
         if (item->key) {
             if (numdict_put(newdict, item->key, item->value)) {
